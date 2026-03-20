@@ -85,11 +85,19 @@ export function broadcastScanEvent(uid: string) {
   `).get(uid) as any
 
   if (!result) return
+  
+  const getJwtSecret = (): string => {
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
+      throw new Error('JWT_SECRET environment variable is required')
+    }
+    return secret
+  }
 
   const token = jwt.sign(
     { userId: result.id, email: result.email },
-    process.env.JWT_SECRET || 'fallback_secret',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
+    getJwtSecret(),
+    { expiresIn: process.env.JWT_EXPIRES_IN || '1d' } as any
   )
 
   const payload = JSON.stringify({
