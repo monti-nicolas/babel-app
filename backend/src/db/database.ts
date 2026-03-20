@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3'
+import Database, { Database as DatabaseType } from 'better-sqlite3'
 import path from 'path'
 import dotenv from 'dotenv'
 
@@ -6,7 +6,7 @@ dotenv.config()
 
 const DB_PATH = process.env.DB_PATH || './babel.db'
 
-const db = new Database(path.resolve(DB_PATH))
+const db: DatabaseType = new Database(path.resolve(DB_PATH))
 
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL')
