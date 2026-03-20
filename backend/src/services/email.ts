@@ -1,14 +1,24 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@babel.local'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
+// Lazy initialisation — Resend is only instantiated when an email is actually
+// sent, not at module load time. This prevents a crash on startup if
+// RESEND_API_KEY hasn't been loaded from .env yet.
+function getResend(): Resend {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    throw new Error('RESEND_API_KEY is not set in environment variables')
+  }
+  return new Resend(key)
+}
+
+const FROM = () => process.env.RESEND_FROM_EMAIL || 'noreply@babel.local'
+const FRONTEND_URL = () => process.env.FRONTEND_URL || 'http://localhost:5173'
 
 export async function sendVerificationEmail(email: string, username: string, token: string) {
-  const link = `${FRONTEND_URL}/verify-email?token=${token}`
+  const link = `${FRONTEND_URL()}/verify-email?token=${token}`
 
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: FROM(),
     to: email,
     subject: 'Welcome to Babel — confirm your email',
     html: `
@@ -30,10 +40,10 @@ export async function sendVerificationEmail(email: string, username: string, tok
 }
 
 export async function sendPasswordResetEmail(email: string, username: string, token: string) {
-  const link = `${FRONTEND_URL}/reset-password?token=${token}`
+  const link = `${FRONTEND_URL()}/reset-password?token=${token}`
 
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: FROM(),
     to: email,
     subject: 'Babel — reset your password',
     html: `
