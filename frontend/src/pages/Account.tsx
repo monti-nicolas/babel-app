@@ -80,28 +80,8 @@ export default function Account() {
     setRfidError('')
     setRfidSuccess('')
 
-    // Poll /api/rfid/pending for up to 30 seconds
-    const start = Date.now()
-    const poll = async () => {
-      if (Date.now() - start > 30000) {
-        setWaitingForScan(false)
-        setRfidError('Scan timed out. Please try again.')
-        return
-      }
-      try {
-        const res = await api.get('/rfid/pending')
-        if (res.data.scan) {
-          // Got a scan — link it
-          await api.post('/rfid/tags', { uid: res.data.scan.user ? res.data.scan.user.id : undefined })
-        }
-      } catch {}
-
-      // Actually for RFID registration we use a different approach:
-      // wait for a raw scan event and then POST to /rfid/tags with the UID
-      // We reuse the pending endpoint to get the latest uid
-    }
-
     // Use WebSocket to get the next scan
+    const start = Date.now()
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const ws = new WebSocket(`${protocol}//${window.location.hostname}:3001/ws`)
 
